@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ARCADE // Benjamin's Game Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #0B0E14;
+    --panel: #131826;
+    --panel-2: #1B2233;
+    --line: #232b3d;
+    --neon: #4DEEDC;
+    --neon-dim: #2c7e78;
+    --amber: #FFB454;
+    --text: #E7ECF3;
+    --muted: #8893A6;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 20% -10%, rgba(77,238,220,0.08), transparent 40%),
+      radial-gradient(circle at 90% 10%, rgba(255,180,84,0.06), transparent 35%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 28px;
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:20;
+    background:rgba(11,14,20,0.85);
+    backdrop-filter: blur(10px);
+  }
+  .logo{
+    font-family:'Press Start 2P', monospace;
+    font-size:14px;
+    color:var(--neon);
+    letter-spacing:1px;
+    text-shadow:0 0 12px rgba(77,238,220,0.5);
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
+  .auth-area{display:flex;align-items:center;gap:12px;}
+  .user-chip{
+    display:flex;align-items:center;gap:8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:6px 12px 6px 6px;
+    border-radius:999px;
+    font-size:13px;
+  }
+  .user-chip img{width:24px;height:24px;border-radius:50%;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+  .btn{padding:9px 16px; border-radius:9px; font-weight:600; font-size:13px; transition:transform .15s ease, box-shadow .15s ease;}
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--neon); color:#04211e;}
+  .btn-primary:hover{box-shadow:0 0 18px rgba(77,238,220,0.45);}
+  .btn-ghost{background:transparent; color:var(--muted); border:1px solid var(--line);}
+  .btn-ghost:hover{color:var(--text); border-color:var(--muted);}
+
+  main{padding:36px 28px 80px; max-width:1100px; margin:0 auto;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px;}
+  h1{font-size:28px; margin:0 0 30px; font-weight:700;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:20px;}
+  .cabinet{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; position:relative; cursor:pointer; transition:transform .18s ease, border-color .18s ease;}
+  .cabinet:hover{transform:translateY(-3px); border-color:var(--neon-dim);}
+  .cabinet:focus-visible{outline:2px solid var(--neon); outline-offset:2px;}
+  .marquee{height:5px; background:var(--line); transition:box-shadow .25s ease, background .25s ease;}
+  .cabinet:hover .marquee{background:var(--neon); box-shadow:0 0 14px var(--neon);}
+  .cabinet.amber:hover .marquee{background:var(--amber); box-shadow:0 0 14px var(--amber);}
+  .cab-body{padding:18px;}
+  .cab-icon{font-size:30px; margin-bottom:10px; display:block;}
+  .cab-title{font-weight:700; font-size:16px; margin-bottom:4px;}
+  .cab-desc{font-size:13px; color:var(--muted); line-height:1.4; min-height:36px;}
+  .cab-meta{display:flex; justify-content:space-between; align-items:center; margin-top:14px; font-size:11px; color:var(--muted);}
+  .badge{font-family:'JetBrains Mono', monospace; padding:3px 8px; border-radius:6px; background:var(--panel-2); border:1px solid var(--line);}
+  .best{color:var(--amber);}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--panel-2); border:1px solid var(--neon-dim);
+    padding:10px 18px; border-radius:9px; font-size:13px;
+    z-index:60; opacity:0; transition:opacity .3s ease;
+  }
+  .toast.show{opacity:1;}
+
+  footer{text-align:center; color:var(--muted); font-size:12px; padding:30px; border-top:1px solid var(--line);}
+  footer code{color:var(--amber);}
+
+  @media (prefers-reduced-motion: reduce){ .cabinet, .marquee, .btn{transition:none;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="dot"></span> ARCADE://HUB</div>
+  <div class="auth-area" id="authArea">
+    <button class="btn btn-primary" id="signInBtn">Sign in with Google</button>
+  </div>
+</header>
+
+<main>
+  <div class="eyebrow">04 cabinets online · games open in pop-up windows</div>
+  <h1>Pick a game</h1>
+
+  <div class="grid" id="grid">
+    <div class="cabinet" tabindex="0" data-game="snake">
+      <div class="marquee"></div>
+      <div class="cab-body">
+        <span class="cab-icon">🐍</span>
+        <div class="cab-title">Snake</div>
+        <div class="cab-desc">Classic grid snake. Opens in its own window. Arrow keys or swipe.</div>
+        <div class="cab-meta">
+          <span class="badge">pop-up</span>
+          <span class="best mono" id="best-snake">best: —</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cabinet amber" tabindex="0" data-game="2048">
+      <div class="marquee"></div>
+      <div class="cab-body">
+        <span class="cab-icon">🧮</span>
+        <div class="cab-title">2048</div>
+        <div class="cab-desc">Slide tiles, merge numbers, chase the 2048 block. Opens in its own window.</div>
+        <div class="cab-meta">
+          <span class="badge">pop-up</span>
+          <span class="best mono" id="best-2048">best: —</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cabinet" tabindex="0" data-game="leek">
+      <div class="marquee"></div>
+      <div class="cab-body">
+        <span class="cab-icon">🥬</span>
+        <div class="cab-title">Leek Factory</div>
+        <div class="cab-desc">Click to harvest, hire farmers, automate. Original idle game, opens in its own window.</div>
+        <div class="cab-meta">
+          <span class="badge">pop-up</span>
+          <span class="best mono" id="best-leek">best: —</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cabinet" style="cursor:default; opacity:0.5;" tabindex="-1">
+      <div class="marquee"></div>
+      <div class="cab-body">
+        <span class="cab-icon">➕</span>
+        <div class="cab-title">Add your own</div>
+        <div class="cab-desc">Drop a new tile + popup generator in the script to add another cabinet.</div>
+        <div class="cab-meta"><span class="badge">slot open</span></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  If a game window doesn't open, your browser likely blocked the pop-up — allow pop-ups for this site. Scores save to <code>scores/{uid}_{game}</code> in Firestore once you're signed in.
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* =========================================================
+   FIREBASE — v9+ modular SDK
+   ========================================================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyADD6oM12DU6IFrK2mdS5nLGSSM--d_bng",
+  authDomain: "games-f0f95.firebaseapp.com",
+  projectId: "games-f0f95",
+  storageBucket: "games-f0f95.firebasestorage.app",
+  messagingSenderId: "77678728365",
+  appId: "1:77678728365:web:ec0be305c15910dd662224",
+  measurementId: "G-6X1MVDLZ7G"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+const bestScores = { snake: null, '2048': null, leek: null };
+
+/* ---------------- Auth UI ---------------- */
+const authArea = document.getElementById('signInBtn').parentElement;
+
+function renderAuthArea(){
+  if(currentUser){
+    authArea.innerHTML =
+      '<div class="user-chip"><img src="' + (currentUser.photoURL || '') + '" alt=""><span>' +
+      (currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Player') +
+      '</span></div><button class="btn btn-ghost" id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').onclick = () => signOut(auth);
+  } else {
+    authArea.innerHTML = '<button class="btn btn-primary" id="signInBtn">Sign in with Google</button>';
+    document.getElementById('signInBtn').onclick = signIn;
+  }
+}
+
+function signIn(){
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider).catch(err => showToast('Sign-in failed: ' + err.message));
+}
+
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  renderAuthArea();
+  if(user){
+    await loadBestScores();
+    showToast('Welcome, ' + (user.displayName ? user.displayName.split(' ')[0] : 'player'));
+  } else {
+    bestScores.snake = null; bestScores['2048'] = null; bestScores.leek = null;
+    updateBestBadges();
+  }
+});
+
+document.getElementById('signInBtn').onclick = signIn;
+
+/* ---------------- Score persistence ---------------- */
+async function loadBestScores(){
+  if(!currentUser) return;
+  for(const game of ['snake','2048','leek']){
+    try{
+      const ref = doc(db, 'scores', currentUser.uid + '_' + game);
+      const snap = await getDoc(ref);
+      bestScores[game] = snap.exists() ? snap.data().score : null;
+    }catch(e){ /* firestore rules not set up yet — fail quietly */ }
+  }
+  updateBestBadges();
+}
+
+async function saveScoreIfBest(game, score){
+  if(!currentUser){
+    showToast('Sign in to save your score');
+    return;
+  }
+  const prev = bestScores[game];
+  if(prev === null || score > prev){
+    bestScores[game] = score;
+    updateBestBadges();
+    try{
+      await setDoc(doc(db, 'scores', currentUser.uid + '_' + game), {
+        uid: currentUser.uid,
+        name: currentUser.displayName || 'Player',
+        game, score,
+        updatedAt: serverTimestamp()
+      });
+      const label = game === '2048' ? '2048' : (game === 'leek' ? 'Leek Factory' : 'Snake');
+      showToast('New best on ' + label + ': ' + score);
+    }catch(e){ showToast('Could not save score — check Firestore rules'); }
+  }
+}
+
+function getBestScore(game){ return bestScores[game]; }
+
+function updateBestBadges(){
+  document.getElementById('best-snake').textContent = 'best: ' + (bestScores.snake ?? '—');
+  document.getElementById('best-2048').textContent = 'best: ' + (bestScores['2048'] ?? '—');
+  document.getElementById('best-leek').textContent = 'best: ' + (bestScores.leek ?? '—');
+}
+
+/* expose to popup windows (they run in separate window objects) */
+window.saveScoreIfBest = saveScoreIfBest;
+window.getBestScore = getBestScore;
+
+/* ---------------- Toast ---------------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+window.showToast = showToast;
+
+/* ---------------- Popup launcher ---------------- */
+document.querySelectorAll('.cabinet[data-game]').forEach(cab => {
+  cab.addEventListener('click', () => launchGame(cab.dataset.game));
+  cab.addEventListener('keydown', e => { if(e.key === 'Enter') launchGame(cab.dataset.game); });
+});
+
+function launchGame(id){
+  let popup, w, h, html;
+  if(id === 'snake'){ w = 380; h = 560; html = SNAKE_HTML; }
+  if(id === '2048'){ w = 380; h = 560; html = GAME2048_HTML; }
+  if(id === 'leek'){ w = 380; h = 600; html = LEEK_HTML; }
+  popup = window.open('', id + 'Window', 'width=' + w + ',height=' + h + ',resizable=yes');
+  if(!popup){
+    showToast('Pop-up blocked — allow pop-ups for this site to play');
+    return;
+  }
+  popup.document.open();
+  popup.document.write(html);
+  popup.document.close();
+}
+
+/* =========================================================
+   Shared popup chrome (CSS reused across all three windows)
+   ========================================================= */
+const POPUP_STYLE =
+  'body{margin:0;background:#0B0E14;color:#E7ECF3;font-family:Inter,sans-serif;' +
+  'display:flex;flex-direction:column;align-items:center;padding:18px;}' +
+  'h2{margin:4px 0 2px;font-size:18px;}' +
+  '.sub{color:#8893A6;font-size:12px;margin-bottom:12px;text-align:center;}' +
+  'canvas{background:#05070b;border-radius:10px;}' +
+  '.row{display:flex;justify-content:space-between;width:300px;font-family:"JetBrains Mono",monospace;' +
+  'font-size:13px;color:#8893A6;margin:5px 0;}' +
+  '.row span:last-child{color:#E7ECF3;font-weight:600;}' +
+  '.hint{font-size:11px;color:#8893A6;margin-top:10px;text-align:center;}' +
+  '.harvestBtn{width:100%;max-width:300px;padding:15px;font-size:15px;font-weight:700;' +
+  'background:#4DEEDC;color:#04211e;border:none;border-radius:9px;cursor:pointer;margin-bottom:14px;}' +
+  '.shopRow{width:100%;max-width:300px;display:flex;justify-content:space-between;align-items:center;' +
+  'padding:10px 12px;text-align:left;background:transparent;color:#8893A6;border:1px solid #232b3d;' +
+  'border-radius:9px;cursor:pointer;margin-bottom:8px;font-family:Inter,sans-serif;}' +
+  '.shopRow strong{color:#E7ECF3;display:block;font-size:13px;}' +
+  '.shopRow .desc{display:block;font-size:11px;color:#8893A6;margin-top:2px;}' +
+  '.shopRow .cost{font-family:"JetBrains Mono",monospace;color:#FFB454;white-space:nowrap;margin-left:10px;}';
+
+/* =========================================================
+   SNAKE — full standalone document for the popup window
+   ========================================================= */
+const SNAKE_HTML = '<!DOCTYPE html><html><head><title>Snake</title><style>' + POPUP_STYLE + '</style></head>' +
+'<body>' +
+'<h2>🐍 Snake</h2>' +
+'<div class="sub">Arrow keys / WASD / swipe. Click the board to start.</div>' +
+'<canvas id="c" width="300" height="300"></canvas>' +
+'<div class="row"><span>Score</span><span id="score">0</span></div>' +
+'<div class="row"><span>Personal best</span><span id="best">—</span></div>' +
+'<div class="hint">Closing this window saves your score.</div>' +
+'<script>' +
+'var canvas = document.getElementById("c");' +
+'var ctx = canvas.getContext("2d");' +
+'var SIZE = 15;' +
+'var CELLS = canvas.width / SIZE;' +
+'var snake, dir, nextDir, food, score, loop, running;' +
+'function place(){ food = { x: Math.floor(Math.random()*CELLS), y: Math.floor(Math.random()*CELLS) }; }' +
+'function reset(){' +
+'  snake = [{x:8,y:8},{x:7,y:8},{x:6,y:8}];' +
+'  dir = {x:1,y:0}; nextDir = dir; score = 0; running = false;' +
+'  place(); document.getElementById("score").textContent = "0"; draw();' +
+'}' +
+'function draw(){' +
+'  ctx.fillStyle = "#05070b"; ctx.fillRect(0,0,canvas.width,canvas.height);' +
+'  ctx.fillStyle = "#FFB454"; ctx.fillRect(food.x*SIZE+2, food.y*SIZE+2, SIZE-4, SIZE-4);' +
+'  for(var i=0;i<snake.length;i++){' +
+'    ctx.fillStyle = i===0 ? "#4DEEDC" : "#2c7e78";' +
+'    ctx.fillRect(snake[i].x*SIZE+1, snake[i].y*SIZE+1, SIZE-2, SIZE-2);' +
+'  }' +
+'}' +
+'function step(){' +
+'  dir = nextDir;' +
+'  var head = { x: snake[0].x+dir.x, y: snake[0].y+dir.y };' +
+'  var hit = head.x<0||head.y<0||head.x>=CELLS||head.y>=CELLS;' +
+'  if(!hit){ for(var i=0;i<snake.length;i++){ if(snake[i].x===head.x && snake[i].y===head.y) hit = true; } }' +
+'  if(hit){' +
+'    clearInterval(loop); running = false;' +
+'    if(window.opener && window.opener.saveScoreIfBest) window.opener.saveScoreIfBest("snake", score);' +
+'    return;' +
+'  }' +
+'  snake.unshift(head);' +
+'  if(head.x===food.x && head.y===food.y){' +
+'    score += 10; document.getElementById("score").textContent = score; place();' +
+'  } else { snake.pop(); }' +
+'  draw();' +
+'}' +
+'function start(){ if(running) return; running = true; loop = setInterval(step, 110); }' +
+'canvas.addEventListener("click", start);' +
+'var KEYS = {ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},' +
+'w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0}};' +
+'window.addEventListener("keydown", function(e){' +
+'  var d = KEYS[e.key];' +
+'  if(d && !(d.x===-dir.x && d.y===-dir.y)){ nextDir = d; start(); e.preventDefault(); }' +
+'});' +
+'var ts = null;' +
+'canvas.addEventListener("touchstart", function(e){ ts = e.touches[0]; });' +
+'canvas.addEventListener("touchend", function(e){' +
+'  if(!ts) return;' +
+'  var dx = e.changedTouches[0].clientX - ts.clientX;' +
+'  var dy = e.changedTouches[0].clientY - ts.clientY;' +
+'  if(Math.abs(dx) > Math.abs(dy)){ nextDir = dx>0 ? {x:1,y:0} : {x:-1,y:0}; }' +
+'  else { nextDir = dy>0 ? {x:0,y:1} : {x:0,y:-1}; }' +
+'  start();' +
+'});' +
+'window.addEventListener("beforeunload", function(){' +
+'  if(window.opener && window.opener.saveScoreIfBest) window.opener.saveScoreIfBest("snake", score);' +
+'});' +
+'if(window.opener && window.opener.getBestScore){' +
+'  var b = window.opener.getBestScore("snake");' +
+'  document.getElementById("best").textContent = (b===null||b===undefined) ? "—" : b;' +
+'}' +
+'reset();' +
+'</' + 'script></body></html>';
+
+/* =========================================================
+   2048 — full standalone document for the popup window
+   ========================================================= */
+const GAME2048_HTML = '<!DOCTYPE html><html><head><title>2048</title><style>' + POPUP_STYLE + '</style></head>' +
+'<body>' +
+'<h2>🧮 2048</h2>' +
+'<div class="sub">Arrow keys / WASD / swipe to slide tiles.</div>' +
+'<canvas id="c" width="300" height="300"></canvas>' +
+'<div class="row"><span>Score</span><span id="score">0</span></div>' +
+'<div class="row"><span>Personal best</span><span id="best">—</span></div>' +
+'<div class="hint">Closing this window saves your score.</div>' +
+'<script>' +
+'var canvas = document.getElementById("c");' +
+'var ctx = canvas.getContext("2d");' +
+'var GRID = 4;' +
+'var CELL = canvas.width / GRID;' +
+'var grid, score;' +
+'var COLORS = {2:"#1B2233",4:"#232b3d",8:"#2c7e78",16:"#1f8f86",32:"#16a39a",64:"#FFB454",' +
+'128:"#ffa72e",256:"#ff8c1a",512:"#ff7a1a",1024:"#4DEEDC",2048:"#fffb87"};' +
+'function reset(){' +
+'  grid = []; for(var y=0;y<GRID;y++){ var row=[]; for(var x=0;x<GRID;x++) row.push(0); grid.push(row); }' +
+'  score = 0; addTile(); addTile();' +
+'  document.getElementById("score").textContent = "0"; draw();' +
+'}' +
+'function addTile(){' +
+'  var empties = [];' +
+'  for(var y=0;y<GRID;y++) for(var x=0;x<GRID;x++) if(grid[y][x]===0) empties.push({x:x,y:y});' +
+'  if(!empties.length) return;' +
+'  var p = empties[Math.floor(Math.random()*empties.length)];' +
+'  grid[p.y][p.x] = Math.random() < 0.9 ? 2 : 4;' +
+'}' +
+'function draw(){' +
+'  ctx.fillStyle = "#05070b"; ctx.fillRect(0,0,canvas.width,canvas.height);' +
+'  for(var y=0;y<GRID;y++){ for(var x=0;x<GRID;x++){' +
+'    var v = grid[y][x];' +
+'    ctx.fillStyle = v ? (COLORS[v] || "#fffb87") : "#101522";' +
+'    ctx.fillRect(x*CELL+4, y*CELL+4, CELL-8, CELL-8);' +
+'    if(v){' +
+'      ctx.fillStyle = v<=4 ? "#E7ECF3" : "#04211e";' +
+'      ctx.font = "bold 20px Inter, sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";' +
+'      ctx.fillText(v, x*CELL+CELL/2, y*CELL+CELL/2+2);' +
+'    }' +
+'  }}' +
+'}' +
+'function slideLine(line){' +
+'  var f = []; for(var i=0;i<line.length;i++) if(line[i]!==0) f.push(line[i]);' +
+'  var result = []; var gained = 0;' +
+'  for(var i=0;i<f.length;i++){' +
+'    if(f[i]===f[i+1]){ result.push(f[i]*2); gained += f[i]*2; i++; }' +
+'    else { result.push(f[i]); }' +
+'  }' +
+'  while(result.length < GRID) result.push(0);' +
+'  return {result:result, gained:gained};' +
+'}' +
+'function move(dirName){' +
+'  var before = JSON.stringify(grid); var totalGain = 0;' +
+'  for(var i=0;i<GRID;i++){' +
+'    var line;' +
+'    if(dirName==="left") line = grid[i].slice();' +
+'    if(dirName==="right") line = grid[i].slice().reverse();' +
+'    if(dirName==="up") { line = []; for(var r=0;r<GRID;r++) line.push(grid[r][i]); }' +
+'    if(dirName==="down") { line = []; for(var r=0;r<GRID;r++) line.push(grid[r][i]); line.reverse(); }' +
+'    var res = slideLine(line); totalGain += res.gained;' +
+'    if(dirName==="left") grid[i] = res.result;' +
+'    if(dirName==="right") grid[i] = res.result.slice().reverse();' +
+'    if(dirName==="up") for(var r=0;r<GRID;r++) grid[r][i] = res.result[r];' +
+'    if(dirName==="down") { var rev = res.result.slice().reverse(); for(var r=0;r<GRID;r++) grid[r][i] = rev[r]; }' +
+'  }' +
+'  if(JSON.stringify(grid) !== before){' +
+'    score += totalGain; document.getElementById("score").textContent = score;' +
+'    addTile(); draw(); checkOver();' +
+'  }' +
+'}' +
+'function checkOver(){' +
+'  for(var y=0;y<GRID;y++) for(var x=0;x<GRID;x++) if(grid[y][x]===0) return;' +
+'  for(var y=0;y<GRID;y++){ for(var x=0;x<GRID;x++){' +
+'    var v = grid[y][x];' +
+'    if(x+1<GRID && grid[y][x+1]===v) return;' +
+'    if(y+1<GRID && grid[y+1][x]===v) return;' +
+'  }}' +
+'  if(window.opener && window.opener.saveScoreIfBest) window.opener.saveScoreIfBest("2048", score);' +
+'  if(window.opener && window.opener.showToast) window.opener.showToast("2048 game over — final score " + score);' +
+'}' +
+'var DIRS = {ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down"};' +
+'window.addEventListener("keydown", function(e){ var d = DIRS[e.key]; if(d){ move(d); e.preventDefault(); } });' +
+'var ts = null;' +
+'canvas.addEventListener("touchstart", function(e){ ts = e.touches[0]; });' +
+'canvas.addEventListener("touchend", function(e){' +
+'  if(!ts) return;' +
+'  var dx = e.changedTouches[0].clientX - ts.clientX;' +
+'  var dy = e.changedTouches[0].clientY - ts.clientY;' +
+'  if(Math.max(Math.abs(dx),Math.abs(dy)) < 20) return;' +
+'  if(Math.abs(dx) > Math.abs(dy)) move(dx>0 ? "right" : "left"); else move(dy>0 ? "down" : "up");' +
+'});' +
+'window.addEventListener("beforeunload", function(){' +
+'  if(window.opener && window.opener.saveScoreIfBest) window.opener.saveScoreIfBest("2048", score);' +
+'});' +
+'if(window.opener && window.opener.getBestScore){' +
+'  var b = window.opener.getBestScore("2048");' +
+'  document.getElementById("best").textContent = (b===null||b===undefined) ? "—" : b;' +
+'}' +
+'reset();' +
+'</' + 'script></body></html>';
+
+/* =========================================================
+   LEEK FACTORY — original idle game, standalone popup doc
+   ========================================================= */
+const LEEK_HTML = '<!DOCTYPE html><html><head><title>Leek Factory</title><style>' + POPUP_STYLE + '</style></head>' +
+'<body>' +
+'<h2>🥬 Leek Factory</h2>' +
+'<div class="sub">Click to harvest. Hire farmers to automate.</div>' +
+'<div style="text-align:center;padding:14px 0;">' +
+'  <div style="font-family:JetBrains Mono,monospace;font-size:32px;font-weight:700;color:#4DEEDC;" id="count">0</div>' +
+'  <div style="font-family:JetBrains Mono,monospace;font-size:12px;color:#8893A6;" id="rate">+0 / sec</div>' +
+'</div>' +
+'<button class="harvestBtn" id="harvestBtn">🥬 Harvest leek</button>' +
+'<div id="shop"></div>' +
+'<div class="row"><span>Personal best</span><span id="best">—</span></div>' +
+'<div class="hint">Closing this window saves your progress.</div>' +
+'<script>' +
+'var leeks = 0, perClick = 1, perSec = 0;' +
+'var UPS = [' +
+'  {id:"farmer", name:"Hire a farmer", baseCost:10, rate:1, desc:"+1 leek/sec"},' +
+'  {id:"tractor", name:"Buy a tractor", baseCost:80, rate:6, desc:"+6 leeks/sec"},' +
+'  {id:"greenhouse", name:"Build a greenhouse", baseCost:400, rate:25, desc:"+25 leeks/sec"},' +
+'  {id:"clickPower", name:"Sharpen your hoe", baseCost:25, rate:0, desc:"+1 leek per click", isClick:true}' +
+'];' +
+'var owned = {farmer:0, tractor:0, greenhouse:0, clickPower:0};' +
+'function cost(up){ return Math.ceil(up.baseCost * Math.pow(1.18, owned[up.id])); }' +
+'function renderCount(){' +
+'  document.getElementById("count").textContent = Math.floor(leeks);' +
+'  document.getElementById("rate").textContent = "+" + perSec + " / sec";' +
+'}' +
+'function renderShop(){' +
+'  var shop = document.getElementById("shop"); shop.innerHTML = "";' +
+'  for(var i=0;i<UPS.length;i++){' +
+'    (function(up){' +
+'      var c = cost(up);' +
+'      var btn = document.createElement("button");' +
+'      btn.className = "shopRow";' +
+'      var left = document.createElement("span");' +
+'      var strong = document.createElement("strong"); strong.textContent = up.name;' +
+'      var desc = document.createElement("span"); desc.className = "desc";' +
+'      desc.textContent = up.desc + " · owned " + owned[up.id];' +
+'      left.appendChild(strong); left.appendChild(desc);' +
+'      var right = document.createElement("span"); right.className = "cost"; right.textContent = c + " 🥬";' +
+'      btn.appendChild(left); btn.appendChild(right);' +
+'      btn.onclick = function(){' +
+'        if(leeks < c){ if(window.opener && window.opener.showToast) window.opener.showToast("Need " + c + " leeks for that"); return; }' +
+'        leeks -= c; owned[up.id]++;' +
+'        if(up.isClick) perClick += 1; else perSec += up.rate;' +
+'        renderCount(); renderShop();' +
+'      };' +
+'      shop.appendChild(btn);' +
+'    })(UPS[i]);' +
+'  }' +
+'}' +
+'document.getElementById("harvestBtn").onclick = function(){ leeks += perClick; renderCount(); };' +
+'setInterval(function(){ leeks += perSec/10; renderCount(); }, 100);' +
+'function saveProgress(){' +
+'  if(leeks > 0 && window.opener && window.opener.saveScoreIfBest) window.opener.saveScoreIfBest("leek", Math.floor(leeks));' +
+'}' +
+'setInterval(saveProgress, 15000);' +
+'window.addEventListener("beforeunload", saveProgress);' +
+'if(window.opener && window.opener.getBestScore){' +
+'  var b = window.opener.getBestScore("leek");' +
+'  document.getElementById("best").textContent = (b===null||b===undefined) ? "—" : b;' +
+'}' +
+'renderCount(); renderShop();' +
+'</' + 'script></body></html>';
+</script>
+</body>
+</html>
